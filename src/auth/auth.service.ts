@@ -9,8 +9,8 @@ import { randomBytes } from 'crypto';
 import { ClientKafka } from '@nestjs/microservices'; // Import ClientKafka
 import { Inject } from '@nestjs/common'; // Import Inject decorator
 import { logger } from '../config/logger.config';
-import { KafkaService } from 'src/kafka/kafka.service';
 import { MailService } from 'src/helper/mail.service';
+import { EventType, KafkaProducerService, Topic } from 'src/kafka/kafka.producer';
 
 @Injectable()
 export class AuthService {
@@ -20,8 +20,7 @@ export class AuthService {
     @InjectRepository(Pass)
     private passRepository: Repository<Pass>,
     private jwtService: JwtService,
-    @Inject('KAFKA_SERVICE') private kafkaClient: ClientKafka,  // Use Inject with the service name
-    private kafkaService: KafkaService,
+    private kafkaProducerService : KafkaProducerService,  // Use Inject with the service name
     private mailService : MailService,
   ) {}
  
@@ -43,12 +42,13 @@ export class AuthService {
     await this.mailService.sendActivationEmail(email, activationToken);
 
      
+    const message = new Map<string, any>([
+      ['id', user.id],
+      ['username',user.username],
+      ['email', user.email],
+    ]);
     // Kafka event for user creation
-    await this.kafkaClient.emit('USER-CREATED', {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-    });
+    await this.kafkaProducerService.sendMessage(Topic.user,message,EventType.created);
 
     return { message: 'Registration successful, please check your email to activate your account' };
   }
@@ -84,12 +84,13 @@ export class AuthService {
     // Log the update
     logger.info(`User updated: ${user.username}`);
 
-    // Kafka event for user update
-    await this.kafkaClient.emit('USER-UPDATED', {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-    });
+    const message = new Map<string, any>([
+      ['id', user.id],
+      ['username',user.username],
+      ['email', user.email],
+    ]);
+    // Kafka event for user creation
+    await this.kafkaProducerService.sendMessage(Topic.user,message,EventType.updated);
 
     return { message: 'User updated successfully' };
   }
@@ -103,11 +104,12 @@ export class AuthService {
     // Log the deletion
     logger.info(`User deleted: ${user.username}`);
 
-    // Kafka event for user deletion
-    await this.kafkaClient.emit('USER-DELETED', {
-      id: user.id,
-      username: user.username,
-    });
+    const message = new Map<string, any>([
+      ['id', user.id],
+      ['username',user.username],
+    ]);
+    // Kafka event for user creation
+    await this.kafkaProducerService.sendMessage(Topic.user,message,EventType.deleted);
 
     return { message: 'User deleted successfully' };
   }

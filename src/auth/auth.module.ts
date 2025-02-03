@@ -5,17 +5,16 @@ import { AuthController } from './auth.controller';
 import { User } from '../entities/user.entity';
 import { Pass } from '../entities/pass.entity';
 import { JwtModule } from '@nestjs/jwt';
-import { KafkaModule } from 'src/kafka/kafka.module';
-import { KafkaService } from 'src/kafka/kafka.service';
+
 import { MailService } from 'src/helper/mail.service';
+import { KafkaProducerService } from 'src/kafka/kafka.producer';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Pass]), // ✅ Register User & Pass
     JwtModule.register({ secret: 'your_secret_key' }),
-    KafkaModule
   ],
-  providers: [AuthService,KafkaService,MailService],
+  providers: [AuthService,KafkaProducerService,MailService],
   controllers: [AuthController],
   exports: [AuthService, TypeOrmModule],
 })

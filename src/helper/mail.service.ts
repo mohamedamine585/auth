@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { stat } from 'fs';
 import * as nodemailer from 'nodemailer';
+import { EventType, KafkaProducerService, Topic } from 'src/kafka/kafka.producer';
 import { emailTemplate } from 'src/utils/verif-email';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class MailService {
   private transporter: nodemailer.Transporter;
 
   constructor(
-        @Inject('KAFKA_SERVICE') private kafkaClient: ClientKafka,  // Use Inject with the service name
+        private readonly kafkaProducerService : KafkaProducerService  // Use Inject with the service name
      
   ) {
     this.transporter = nodemailer.createTransport({
@@ -34,18 +35,21 @@ export class MailService {
 
     try {
       await this.transporter.sendMail(mailOptions);
-        this.kafkaClient.emit('EMAIL-SENT', {
-            email: email,
-            status: 'success',
-            message: 'Activation email sent',
-        });
+
+            const message = new Map<string, any>([
+              ['email', email],
+              ['status', 'success'],
+            ]);
+            // Kafka event for user creation
+            await this.kafkaProducerService.sendMessage(Topic.mailing,message,EventType.activationSent);
       
     } catch (error) {
-        this.kafkaClient.emit('EMAIL-ERROR', {
-            email: email,
-            status: 'error',
-            error: error
-        });        
+      const message = new Map<string, any>([
+        ['email', email],
+        ['status', 'error'],
+      ]);
+      // Kafka event for user creation
+      await this.kafkaProducerService.sendMessage(Topic.mailing,message,EventType.activationError);
     }
   }
 }
