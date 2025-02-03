@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { stat } from 'fs';
 import * as nodemailer from 'nodemailer';
-import { EventType, KafkaProducerService, Topic } from 'src/kafka/kafka.producer';
+import { EventType, KafkaProducerService, Topic } from 'src/helper/kafka/kafka.producer';
 import { emailTemplate } from 'src/utils/verif-email';
 
 @Injectable()

@@ -3,14 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../entities/user.entity';
-import { Pass } from '../entities/pass.entity';
+import { User } from '../../entities/user.entity';
+import { Pass } from '../../entities/pass.entity';
 import { randomBytes } from 'crypto';
 import { ClientKafka } from '@nestjs/microservices'; // Import ClientKafka
 import { Inject } from '@nestjs/common'; // Import Inject decorator
-import { logger } from '../config/logger.config';
+import { logger } from '../../config/logger.config';
 import { MailService } from 'src/helper/mail.service';
-import { EventType, KafkaProducerService, Topic } from 'src/kafka/kafka.producer';
+import { EventType, KafkaProducerService, Topic } from 'src/helper/kafka/kafka.producer';
 
 @Injectable()
 export class AuthService {
