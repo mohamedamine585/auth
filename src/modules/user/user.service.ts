@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
-import { logger } from '../config/logger.config';
+import { User } from '../../entities/user.entity';
+import { logger } from '../../config/logger.config';
 import { ClientKafka } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 
