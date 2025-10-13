@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Get, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Delete, UseGuards, Req, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { User } from '../../entities/user.entity';
+import { AuthUserGuard } from 'src/guards/AuthUserGuard';
 
 @Controller('auth')
 export class AuthController {
@@ -17,9 +18,15 @@ export class AuthController {
   }
 
 
-  @Get('profile/:userId')
-  getProfile(@Param('userId') userId: number) {
-    return this.authService.getProfile(userId);
+  @UseGuards(AuthUserGuard) // Ensure the user is authenticated
+  @Get('profile')
+  getProfile(@Request() req: any) {
+    try {
+      return this.authService.getProfile(req.user.sub);
+
+    }catch(e){
+      console.log(e);
+    }
   }
 
   @Put('update/:userId')
@@ -30,6 +37,11 @@ export class AuthController {
   @Delete('delete/:userId')
   deleteUser(@Param('userId') userId: number) {
     return this.authService.deleteUser(userId);
+  }
+
+  @Post('resend-confirmation')
+  resendConfirmation(@Body() body: { email: string }) {
+    return this.authService.resendConfirmation(body.email);
   }
 
   @Get('activate/:token')

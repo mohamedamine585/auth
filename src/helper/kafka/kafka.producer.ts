@@ -51,6 +51,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   // Send a message to Kafka
   public async sendMessage(topic: Topic, message: Map<string,any>,eventType : EventType): Promise<void> {
     try {
+      console.log('Sending message to Kafka:', topic, message, eventType);
       const plainMessage = Object.fromEntries(message); 
       await this.producer.send({
         topic: `auth.${topic}`,
