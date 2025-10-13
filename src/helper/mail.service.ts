@@ -24,7 +24,7 @@ export class MailService {
   }
 
   async sendActivationEmail(email: string, activationToken: string) {
-    const activationLink = `http://localhost:4200/validate-account/${activationToken}`;
+    const activationLink = `http://localhost/validate-account/${activationToken}`;
 
     const mailOptions = {
       from: `${process.env.EMAIL_USER}`,
