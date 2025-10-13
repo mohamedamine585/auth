@@ -14,14 +14,11 @@ WORKDIR /usr/src/app
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 
-# Install app dependencies and rebuild native modules
+# Install app dependencies
 RUN npm install --legacy-peer-deps
 
 # Bundle app source
 COPY . .
-
-# Copy the .env and .env.development files
-COPY ../../.env ./
 
 # Rebuild native modules to ensure they match the container architecture
 RUN npm rebuild bcrypt --build-from-source
