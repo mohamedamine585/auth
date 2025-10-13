@@ -21,7 +21,7 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Copy the .env and .env.development files
-COPY .env ./
+COPY ../../.env ./
 
 # Rebuild native modules to ensure they match the container architecture
 RUN npm rebuild bcrypt --build-from-source
