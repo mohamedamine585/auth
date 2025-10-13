@@ -24,6 +24,22 @@ export class AuthService {
     private mailService : MailService,
   ) {}
  
+  async resendConfirmation(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (user.activated) {
+      return { message: 'Account already activated' };
+    }
+
+    const activationToken = randomBytes(32).toString('hex');
+    user.activationToken = activationToken;
+    await this.userRepository.save(user);
+
+    await this.mailService.sendActivationEmail(email, activationToken);
+
+    return { message: 'Activation email resent successfully' };
+  }
   async register(username: string, email: string, password: string) {
     const existingUser = await this.userRepository.findOne({ where: [{ username }, { email }] });
     if (existingUser) throw new BadRequestException('Username or Email already exists');
@@ -52,7 +68,6 @@ export class AuthService {
 
     return { message: 'Registration successful, please check your email to activate your account' };
   }
-
   async login(email: string, password: string) {
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.pass.password))) {
@@ -64,7 +79,7 @@ export class AuthService {
 
     const payload = { email: user.email, sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, { algorithm: 'HS256',secret:process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_IN }),
     };
   }
 

@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Request, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { logger } from '../../config/logger.config';
 import { ClientKafka } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
+import { AuthUserGuard } from 'src/guards/AuthUserGuard';
 
 @Injectable()
 export class UserService {
@@ -15,8 +16,10 @@ export class UserService {
   ) {}
 
   // Get User Profile by User ID
-  async getProfile(userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  @UseGuards(AuthUserGuard) // Ensure the user is authenticated
+  async getProfile(@Request() req : any) {
+    console.log(req.user);
+    const user = await this.userRepository.findOne({ where: { id: req.user.sub } });
     if (!user) throw new NotFoundException('User not found');
     return { username: user.username, email: user.email };
   }
