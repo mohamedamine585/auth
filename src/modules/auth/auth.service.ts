@@ -41,6 +41,8 @@ export class AuthService {
     return { message: 'Activation email resent successfully' };
   }
   async register(username: string, email: string, password: string) {
+    const existingUser = await this.userRepository.findOne({ where: [{ username }, { email }] });
+    if (existingUser) throw new BadRequestException('Username or Email already exists');
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const pass = this.passRepository.create({ password: hashedPassword });
@@ -53,6 +55,7 @@ export class AuthService {
     // Log the creation
     logger.info(`User created: ${user.username}`);
 
+    await this.mailService.sendActivationEmail(email, activationToken);
 
      
     const message = new Map<string, any>([
@@ -66,10 +69,15 @@ export class AuthService {
     return { message: 'Registration successful, please check your email to activate your account' };
   }
   async login(email: string, password: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user || !(await bcrypt.compare(password, user.pass.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    if(!user.activated){
+      throw new UnauthorizedException('Account not activated');
+    }
 
-    // Random number for payload email to avoid jwt error
-    const emailIndex = Math.floor(Math.random() * 1000);
-    const payload = { email: `fox${emailIndex}@gmail.com`, sub: emailIndex };
+    const payload = { email: user.email, sub: user.id };
     return {
       access_token: this.jwtService.sign(payload, { algorithm: 'HS256',secret:process.env.JWT_SECRET, expiresIn: process.env.JWT_EXPIRES_IN }),
     };

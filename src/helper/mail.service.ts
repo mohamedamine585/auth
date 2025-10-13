@@ -44,6 +44,7 @@ export class MailService {
             await this.kafkaProducerService.sendMessage(Topic.mailing,message,EventType.activationSent);
       
     } catch (error) {
+        console.error('Error sending activation email:', error);
       const message = new Map<string, any>([
         ['email', email],
         ['status', 'error'],
